@@ -8,9 +8,9 @@ int main(void)
 {
     unsigned short choice;
     int data;
-    list head;
+    hasht hptr;
 
-    dll_init(&head); // Initialize the doubly linked list
+    hash_init(1000, &head); // Initialize the doubly linked list
 
     while(1)
     {
