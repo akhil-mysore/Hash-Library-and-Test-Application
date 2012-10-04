@@ -1,5 +1,6 @@
 
 
+
 /* The Brain */
 
 #include <hash_lib.h>
@@ -15,30 +16,38 @@ typedef dll_s
   struct dll_s *next;
 } dll_t;
 
+/* this is defined here so as to abstract it from app */
 typedef struct hash_table_s 
 {
+  u_int32_t num_buckets;
   dll_t **buckets;
-  
 } hash_table_t;
 
 /* 
  * hash_function: to calculate the index/bucket.
  * compare_function: to compare the items which have collided.
  */
-hasht hash_init(u_int32_t buckets, hash_function, compare_function)
+hasht hash_init(u_int32_t num_buckets, hash_function, compare_function)
 {
-  hast hptr;
+  hasht hptr;
 
-  hptr = (hast) malloc (sizeof (*hptr));
+  hptr = (hasht) malloc (sizeof (*hptr));
 
   if(hptr == NULL)
     return NULL;
 
-  *(hptr->buckets) = (dll_t **) malloc (num_buckets * sizeof(dll_t));
-  // check for malloc error.
+  /* Allocate number of buckets in this hash table */
+  (hptr->buckets) = (dll_t **) malloc (num_buckets * sizeof(dll_t));
 
-  // bzero((*(hptr->buckets))
+  if(hptr->buckets == NULL)
+    return NULL;
+  
+  /* Initialize head pointers of all the buckets to NULL */
+  for(index=0; index<num_buckets; index++)
+    hptr->buckets[index] = NULL;
 
+  hptr->num_buckets = num_buckets;
+  
   return hptr;
 }
 
