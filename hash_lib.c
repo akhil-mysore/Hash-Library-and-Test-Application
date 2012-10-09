@@ -20,6 +20,8 @@ typedef dll_s
 typedef struct hash_table_s 
 {
   u_int32_t num_buckets;
+  u_int32_t (*hash_function(pa, pa));
+  u_int32_t (*compare_function));
   dll_t **buckets;
 } hash_table_t;
 
@@ -27,7 +29,9 @@ typedef struct hash_table_s
  * hash_function: to calculate the index/bucket.
  * compare_function: to compare the items which have collided.
  */
-hasht hash_init(u_int32_t num_buckets, hash_function, compare_function)
+hasht hash_init(u_int32_t num_buckets, 
+		u_int32_t (*hash_function(pa, pa)),
+		u_int32_t (*compare_function(pa, pa)))
 {
   hasht hptr;
 
@@ -47,11 +51,21 @@ hasht hash_init(u_int32_t num_buckets, hash_function, compare_function)
     hptr->buckets[index] = NULL;
 
   hptr->num_buckets = num_buckets;
-  
+
+  if(hash_function)
+    hptr->hash_function = hash_function;
+  else
+    hptr->hash_function = def_hash_fucntion;
+
+  if(compare_function)
+    hptr->compare_function = compare_function;
+  else
+    hptr->compare_function = def_compare_function;
+
   return hptr;
 }
 
-hash_insert()
+hash_insert(hasht hptr, )
 hash_remove()
 hash_lookup()
 
