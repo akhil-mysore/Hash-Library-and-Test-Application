@@ -14,9 +14,9 @@ int main(void)
 
     while(1)
     {
-        printf("1. Add an entry into DLL\n"
-              "2. Delete an entry from DLL\n"
-              "3. Dump Linked List Items\n"
+        printf("1. Add an entry\n"
+              "2. Delete an entry\n"
+              "3. Dump Items\n"
               "4. Exit");
 
         scanf("%d", &choice);
@@ -26,7 +26,7 @@ int main(void)
         case 1:
             printf("Enter the data (integer) to be inserted");
             scanf("%d", &data);
-            dll_insert(&head, data);
+            hash_insert(&head, data);
             break;
 
         case 2:
