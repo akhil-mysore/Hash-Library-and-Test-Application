@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-I -Wall.
 DEPS = hash_lib.h 
 OBJ = hash_lib.c app.c
 
