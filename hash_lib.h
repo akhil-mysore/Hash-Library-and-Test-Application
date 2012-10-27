@@ -20,10 +20,16 @@ typedef enum {
 } hash_ret_e;
 
 hasht hash_init(bucket_t num_buckets,
-		bucket_t (*hash_function)(p_key, bucket_t),
-		bucket_t (*compare_function)(p_key, p_key));
+                bucket_t (*hash_function)(p_key, bucket_t),
+                bucket_t (*compare_function)(p_key, p_key),
+                void (*dump_function)(p_key, p_data, bucket_t index));
+
+
+
 hash_ret_e hash_insert(hasht hptr, p_key key, p_data data);
 hash_ret_e hash_remove(hasht hptr, p_key key);
 hash_ret_e hash_lookup(hasht hptr, p_key, p_data *pp_data);
+hash_ret_e hash_dump(hasht hash_ptr);
+
 
 #endif

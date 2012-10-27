@@ -15,8 +15,9 @@ typedef struct dll_s
 typedef struct hash_table_s 
 {
   bucket_t num_buckets;
-  u_int32_t (*hash_function)(p_key, bucket_t);
-  u_int32_t (*compare_function)(p_key, p_key);
+  hash_ret_e (*hash_function)(p_key, bucket_t);
+  hash_ret_e (*compare_function)(p_key, p_key);
+  void (*dump_function)(p_key, p_data, bucket_t index);
   dll_t **buckets;
 } hash_table_t;
 
@@ -46,8 +47,9 @@ static hash_ret_e def_compare_function(p_key compare_this, p_key with_this)
  * compare_function: to compare the items which have collided.
  */
 hasht hash_init(bucket_t num_buckets, 
-		bucket_t (*hash_function)(p_key, bucket_t),
-		bucket_t (*compare_function)(p_key, p_key))
+                bucket_t (*hash_function)(p_key, bucket_t),
+                bucket_t (*compare_function)(p_key, p_key),
+                void (*dump_function)(p_key, p_data, bucket_t index))
 {
   hash_table_t *hptr;
   bucket_t index;
@@ -79,6 +81,8 @@ hasht hash_init(bucket_t num_buckets,
   else
     hptr->compare_function = def_compare_function;
 
+  hptr->dump_function = dump_function;
+
   return (hasht) hptr;
 }
 
@@ -90,10 +94,17 @@ hash_ret_e hash_insert(hasht hash_ptr, p_key pkey, p_data data)
 
   index = hptr->hash_function(pkey, hptr->num_buckets);
 
+  for(node = hptr->buckets[index]; node != NULL; node = node->next) {
+    if(HASH_OK == hptr->compare_function(pkey, node->key)) {
+      return HASH_DUP;
+    }
+  }
+
   node = (dll_t *) malloc (sizeof(dll_t));
   if(node == NULL)
-    HASH_ERROR;
+    return HASH_ERROR;
 
+  node->key = pkey;
   node->data = data;
 
   if(hptr->buckets[index] == NULL) {
@@ -102,9 +113,11 @@ hash_ret_e hash_insert(hasht hash_ptr, p_key pkey, p_data data)
     node->prev = NULL;
     hptr->buckets[index] = node;
   } else {
+    /* Insert at head */
     hptr->buckets[index]->prev = node;
     node->next = hptr->buckets[index];
     node->prev = NULL;
+    hptr->buckets[index] = node;
   }
 
   return HASH_OK; 
@@ -125,14 +138,14 @@ hash_ret_e hash_remove(hasht hash_ptr, p_key pkey)
   for(node = hptr->buckets[index]; node != NULL; node = node->next) {
     if(HASH_OK == hptr->compare_function(pkey, node->key)) {
       if(node->prev) {
-	node->prev->next = node->next;
+        node->prev->next = node->next;
       }
       else {
-	/* Removing the head, re initialize head */
-	hptr->buckets[index] = node->next;
+        /* Removing the head, re initialize head */
+        hptr->buckets[index] = node->next;
       }
       if(node->next)
-	node->next->prev = node->prev;      
+        node->next->prev = node->prev;      
 
       free(node);
       return HASH_OK;
@@ -166,4 +179,27 @@ hash_ret_e hash_lookup(hasht hash_ptr, p_key pkey, p_data *pp_data)
 }
 
 
-//hash_dump
+hash_ret_e hash_dump(hasht hash_ptr)
+{
+  bucket_t      index;
+  dll_t         *node;
+  hash_table_t  *hptr = (hash_table_t *) hash_ptr;
+
+  if(hptr->dump_function == NULL)
+        return HASH_OK;
+
+  for(index=0; index<hptr->num_buckets; index++)
+  {
+    /* Go over the linked list in each bucket and dump the entries. */  
+    node = hptr->buckets[index];
+    while(node)
+    {
+      hptr->dump_function(node->key, node->data, index);
+      node = node->next;
+    }
+  }
+
+  return HASH_OK;
+  
+}
+
